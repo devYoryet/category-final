@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -35,13 +36,48 @@ public class CategoryController {
     @GetMapping("/salon/{id}")
     public ResponseEntity<Set<Category>> getCategoriesBySalon(
             @PathVariable Long id,
-            @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDTO user=userService.getUserFromJwtToken(jwt).getBody();
-        SalonDTO salon=salonService.getSalonById(id).getBody();
+            @RequestHeader("Authorization") String jwt) {
 
-        Set<Category> categories = categoryService
-                .getAllCategoriesBySalon(salon.getId());
-        return new ResponseEntity<>(categories, HttpStatus.OK);
+        System.out.println("📂 CATEGORY - getCategoriesBySalon");
+
+        try {
+            // 🚀 OBTENER USUARIO CON MANEJO DE ERRORES
+            UserDTO user = null;
+            try {
+                user = userService.getUserFromJwtToken(jwt).getBody();
+            } catch (Exception e) {
+                System.err.println("❌ Error obteniendo usuario: " + e.getMessage());
+                return ResponseEntity.ok(Collections.emptySet());
+            }
+
+            if (user == null) {
+                System.out.println("❌ Usuario no encontrado");
+                return ResponseEntity.ok(Collections.emptySet());
+            }
+
+            // 🚀 OBTENER SALÓN CON MANEJO DE ERRORES
+            SalonDTO salon = null;
+            try {
+                salon = salonService.getSalonById(id).getBody();
+            } catch (Exception e) {
+                System.err.println("❌ Error obteniendo salón: " + e.getMessage());
+                return ResponseEntity.ok(Collections.emptySet());
+            }
+
+            if (salon == null) {
+                System.out.println("❌ Salón no encontrado");
+                return ResponseEntity.ok(Collections.emptySet());
+            }
+
+            // 🚀 OBTENER CATEGORÍAS
+            Set<Category> categories = categoryService.getAllCategoriesBySalon(salon.getId());
+
+            return new ResponseEntity<>(categories, HttpStatus.OK);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error general: " + e.getMessage());
+            return ResponseEntity.ok(Collections.emptySet());
+        }
     }
 
     // Get a Category by ID
@@ -58,10 +94,9 @@ public class CategoryController {
     @PatchMapping("/{id}")
     public ResponseEntity<Category> updateCategory(
             @PathVariable Long id,
-            @RequestBody Category category
-    ) throws Exception {
-            Category updatedCategory = categoryService.updateCategory(id,category);
-            return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
+            @RequestBody Category category) throws Exception {
+        Category updatedCategory = categoryService.updateCategory(id, category);
+        return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
     }
 
     // Delete a Category by ID
