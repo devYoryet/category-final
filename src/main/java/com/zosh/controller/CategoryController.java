@@ -80,9 +80,36 @@ public class CategoryController {
         }
     }
 
+    // Obtener todas las categorías del salón del propietario autenticado
+    @GetMapping("/salon-owner")
+    public ResponseEntity<Set<Category>> getCategoriesBySalonOwner(
+            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(value = "X-Cognito-Sub", required = false) String cognitoSub,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail,
+            @RequestHeader(value = "X-User-Username", required = false) String username,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-Auth-Source", required = false) String authSource) {
+        try {
+            SalonDTO salon = salonService.getSalonByOwner(jwt, cognitoSub, userEmail, username, userRole, authSource)
+                    .getBody();
+            if (salon == null) {
+                System.out.println("❌ No se encontró el salón");
+                return ResponseEntity.ok(Collections.emptySet());
+            }
+            Set<Category> categories = categoryService.getAllCategoriesBySalon(salon.getId());
+            return new ResponseEntity<>(categories, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("❌ Error al obtener categorías por dueño: " + e.getMessage());
+            return ResponseEntity.ok(Collections.emptySet());
+        }
+    }
+
     // Get a Category by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
+    public ResponseEntity<Category> getCategoryById(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String jwt // 🔐 ¡Agrega esto!
+    ) {
         try {
             Category category = categoryService.getCategoryById(id);
             return new ResponseEntity<>(category, HttpStatus.OK);
