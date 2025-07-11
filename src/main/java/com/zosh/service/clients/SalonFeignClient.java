@@ -20,6 +20,7 @@ public interface SalonFeignClient {
                         @RequestHeader(value = "X-Auth-Source", required = false) String authSource);
 
         @GetMapping("/api/salons/{salonId}")
-        public ResponseEntity<SalonDTO> getSalonById(@PathVariable Long salonId)
-                        throws Exception;
+        ResponseEntity<SalonDTO> getSalonById(
+                        @PathVariable Long salonId,
+                        @RequestHeader("Authorization") String jwt) throws Exception; // ✅ AGREGADO
 }

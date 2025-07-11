@@ -55,10 +55,10 @@ public class CategoryController {
                 return ResponseEntity.ok(Collections.emptySet());
             }
 
-            // 🚀 OBTENER SALÓN CON MANEJO DE ERRORES
+            // 🚀 OBTENER SALÓN CON JWT - ARREGLO AQUÍ
             SalonDTO salon = null;
             try {
-                salon = salonService.getSalonById(id).getBody();
+                salon = salonService.getSalonById(id, jwt).getBody(); // ✅ AGREGAR JWT
             } catch (Exception e) {
                 System.err.println("❌ Error obteniendo salón: " + e.getMessage());
                 return ResponseEntity.ok(Collections.emptySet());
